@@ -4,6 +4,7 @@ Jalankan manual: python scraper.py
 Jangan gunakan untuk crawling massal. Periksa ketentuan situs sebelum scraping.
 """
 import requests
+import time
 from bs4 import BeautifulSoup
 from database import init_db, save_education_article
 
@@ -16,8 +17,17 @@ HEADERS = {
 }
 
 def scrape_article(url):
-    response = requests.get(url, headers=HEADERS, timeout=20)
-    response.raise_for_status()
+    # Retry terbatas untuk gangguan sementara. Tidak melakukan crawling berulang.
+    response = None
+    for attempt in range(2):
+        try:
+            response = requests.get(url, headers=HEADERS, timeout=20)
+            response.raise_for_status()
+            break
+        except requests.RequestException:
+            if attempt == 1:
+                raise
+            time.sleep(3)
     soup = BeautifulSoup(response.text, "html.parser")
 
     for tag in soup(["script", "style", "nav", "footer", "header", "noscript"]):
@@ -41,13 +51,17 @@ def scrape_article(url):
     return title, len(content)
 
 def main():
-    init_db()
+    init_db()  # Materi ringkas lokal otomatis tersedia meskipun situs sumber gagal.
+    success = 0
     for url in SEED_URLS:
         try:
             title, chars = scrape_article(url)
+            success += 1
             print(f"[OK] {title} — {chars} karakter")
         except Exception as exc:
             print(f"[GAGAL] {url}: {exc}")
+    print(f"\nSelesai: {success}/{len(SEED_URLS)} artikel berhasil di-scrape.")
+    print("Materi ringkas lokal tetap tersedia di database; website tetap dapat digunakan.")
 
 if __name__ == "__main__":
     main()

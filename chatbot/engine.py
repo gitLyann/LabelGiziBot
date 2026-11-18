@@ -54,8 +54,9 @@ def generate_reply(message, product, education_search):
                 snippet = (item["content"] or "").replace("\n", " ")
                 parts.append(f"\n**{item['title']}**\n{snippet[:650]}...\nSumber: {item['url']}")
             return "\n".join(parts), {"type": "education", "count": len(results)}
-        return ("Materi edukasi belum tersedia di database. Jalankan `python scraper.py` dari terminal "
-                "untuk mengambil artikel sumber Kemenkes, lalu coba pertanyaanmu lagi."), {"type": "education_empty"}
+        return ("Aku belum menemukan materi yang cocok di database lokal. Kamu tetap bisa mencoba pertanyaan "
+                "tentang cara membaca label gizi, Isi Piringku, atau gula-garam-lemak. "
+                "Materi dari situs Kemenkes bisa belum terambil jika server sumber sedang tidak tersedia."), {"type": "education_empty"}
 
     return ("Aku belum memahami pertanyaan itu. Coba kirim barcode produk, atau tanyakan tentang "
             "gizi seimbang, Isi Piringku, gula, protein, dan label nutrisi. "

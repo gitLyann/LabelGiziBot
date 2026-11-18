@@ -7,7 +7,8 @@ Starter project chatbot edukasi informasi gizi berbasis Flask, SQLite, Open Food
 - Pencarian detail produk berdasarkan barcode melalui Open Food Facts API v3.
 - Penyimpanan cache produk ke SQLite.
 - Scraping terbatas artikel edukasi Kemenkes menggunakan Requests + BeautifulSoup.
-- Pencarian materi edukasi yang sudah tersimpan di database.
+- Materi ringkas edukasi lokal sebagai fallback jika scraping gagal.
+- Pencarian materi edukasi yang sudah tersimpan di database berdasarkan kata kunci.
 - Riwayat pesan dasar.
 - Antarmuka responsif.
 
@@ -43,13 +44,13 @@ Starter project chatbot edukasi informasi gizi berbasis Flask, SQLite, Open Food
 
 6. Salin `.env.example` menjadi `.env` dan ubah `SECRET_KEY`. Untuk pengujian lokal, aplikasi tetap dapat berjalan dengan nilai pengembangan bawaan, tetapi jangan gunakan nilai tersebut untuk deployment.
 
-7. Jalankan scraper satu kali untuk mengambil artikel edukasi:
+7. Jalankan scraper satu kali untuk mencoba mengambil artikel edukasi dari Kemenkes:
 
    ```powershell
    python scraper.py
    ```
 
-   Scraper hanya mengunjungi dua URL yang ditentukan pada `scraper.py`. Jalankan secara manual, tidak otomatis saat server dimulai. Jika struktur website berubah atau permintaan ditolak, scraper mungkin perlu disesuaikan.
+   Scraper hanya mengunjungi dua URL yang ditentukan pada `scraper.py`, dengan satu kali percobaan ulang jika terjadi gangguan sementara. Jika server Kemenkes mengembalikan HTTP 503, itu berarti server sumber sedang tidak tersedia atau menolak permintaan. Ini tidak menghentikan website. Database juga otomatis diisi tiga materi ringkas lokal (label gizi, Isi Piringku, serta gula-garam-lemak) sebagai fallback. Materi lokal tersebut adalah ringkasan edukatif, bukan hasil scraping otomatis, dan menyertakan tautan sumber untuk dibaca lebih lanjut.
 
 8. Jalankan website:
 

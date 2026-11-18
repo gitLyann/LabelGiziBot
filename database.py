@@ -44,6 +44,53 @@ def init_db():
             created_at TEXT NOT NULL
         );
         """)
+    seed_education_articles()
+
+
+def seed_education_articles():
+    """Isi materi ringkas lokal agar chatbot tetap berguna saat scraping gagal.
+
+    Materi ini adalah ringkasan edukatif untuk demo, bukan hasil scraping otomatis.
+    URL sumber resmi disimpan agar pengguna dapat membaca informasi lengkap.
+    """
+    articles = [
+        (
+            "local://label-gizi",
+            "Cara membaca label informasi nilai gizi",
+            "Untuk membaca label gizi pada kemasan, perhatikan takaran saji dan jumlah sajian per kemasan terlebih dahulu. "
+            "Angka energi dan zat gizi pada tabel biasanya dinyatakan per takaran saji atau per 100 gram/ml sesuai format label. "
+            "Periksa energi total, lemak, lemak jenuh, protein, karbohidrat, gula, dan natrium. "
+            "Persen AKG membantu memperkirakan kontribusi zat gizi terhadap kebutuhan harian acuan; kebutuhan setiap orang dapat berbeda. "
+            "Jika membandingkan dua produk, gunakan dasar takaran yang sama. Jangan menyimpulkan produk sehat hanya dari satu angka. "
+            "Periksa juga daftar bahan dan informasi alergen pada kemasan. Selalu utamakan label fisik terbaru karena data daring dapat tidak lengkap. "
+            "Sumber bacaan: Kementerian Kesehatan RI, Ayo Sehat: https://ayosehat.kemkes.go.id/"
+        ),
+        (
+            "local://isi-piringku",
+            "Panduan Isi Piringku dan gizi seimbang",
+            "Isi Piringku adalah panduan visual untuk membantu membiasakan pola makan beragam dan seimbang. "
+            "Secara umum, dalam satu piring makan, sekitar setengah bagian diisi sayur dan buah, sedangkan setengah lainnya diisi makanan pokok dan lauk-pauk. "
+            "Utamakan variasi bahan pangan, cukup minum air, membiasakan aktivitas fisik, serta menjaga kebersihan. "
+            "Kebutuhan porsi dapat berbeda menurut usia, aktivitas, kondisi kesehatan, dan kebutuhan individu. "
+            "Panduan ini bersifat edukasi umum, bukan pengganti saran tenaga kesehatan. "
+            "Sumber bacaan: Kementerian Kesehatan RI, Ayo Sehat: https://ayosehat.kemkes.go.id/isi-piringku-kebutuhan-gizi-harian-seimbang"
+        ),
+        (
+            "local://gula-garam-lemak",
+            "Mengenali gula, garam, dan lemak pada makanan kemasan",
+            "Saat memilih makanan kemasan, periksa kandungan gula, natrium (yang berkaitan dengan garam), lemak total, dan lemak jenuh pada label. "
+            "Perhatikan ukuran takaran saji: jumlah yang dikonsumsi bisa lebih dari satu sajian sehingga asupan aktual dapat lebih besar daripada angka untuk satu sajian. "
+            "Bandingkan produk sejenis dengan ukuran sajian yang setara dan jangan menganggap data yang kosong sebagai nol. "
+            "Ikuti anjuran kesehatan resmi dan konsultasikan kebutuhan khusus kepada tenaga kesehatan. "
+            "Sumber bacaan: Kementerian Kesehatan RI, Ayo Sehat: https://ayosehat.kemkes.go.id/"
+        ),
+    ]
+    now = datetime.now(timezone.utc).isoformat()
+    with connect() as conn:
+        conn.executemany("""
+            INSERT OR IGNORE INTO education_articles(url, title, content, scraped_at)
+            VALUES (?, ?, ?, ?)
+        """, [(url, title, content, now) for url, title, content in articles])
 
 def save_product(p):
     now = datetime.now(timezone.utc).isoformat()
@@ -82,13 +129,21 @@ def save_education_article(url, title, content):
         """, (url, title, content, now))
 
 def search_education(query="", limit=8):
+    """Cari artikel berdasarkan kata kunci, bukan seluruh kalimat pengguna."""
+    import re
+    words = [w for w in re.findall(r"[a-zA-Z0-9]+", (query or "").lower())
+             if len(w) >= 3 and w not in {"bagaimana", "apakah", "dengan", "untuk", "yang", "dari", "cara", "bisa", "saya", "pada"}]
     with connect() as conn:
-        if query:
-            rows = conn.execute("""
+        if words:
+            clauses = " OR ".join(["LOWER(title) LIKE ? OR LOWER(content) LIKE ?" for _ in words])
+            params = []
+            for word in words:
+                params.extend([f"%{word}%", f"%{word}%"])
+            rows = conn.execute(f"""
                 SELECT title, content, url, scraped_at FROM education_articles
-                WHERE title LIKE ? OR content LIKE ?
+                WHERE {clauses}
                 ORDER BY scraped_at DESC LIMIT ?
-            """, (f"%{query}%", f"%{query}%", limit)).fetchall()
+            """, (*params, limit)).fetchall()
         else:
             rows = conn.execute("""
                 SELECT title, content, url, scraped_at FROM education_articles
