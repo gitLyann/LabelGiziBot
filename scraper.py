@@ -1,0 +1,53 @@
+"""
+Scraper edukasi terbatas untuk artikel publik Ayo Sehat Kemenkes.
+Jalankan manual: python scraper.py
+Jangan gunakan untuk crawling massal. Periksa ketentuan situs sebelum scraping.
+"""
+import requests
+from bs4 import BeautifulSoup
+from database import init_db, save_education_article
+
+SEED_URLS = [
+    "https://ayosehat.kemkes.go.id/isi-piringku-kebutuhan-gizi-harian-seimbang",
+    "https://ayosehat.kemkes.go.id/1000-hari-pertama-kehidupan/balita",
+]
+HEADERS = {
+    "User-Agent": "LabelGiziBot/0.1 (educational student project; respectful low-volume access)"
+}
+
+def scrape_article(url):
+    response = requests.get(url, headers=HEADERS, timeout=20)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    for tag in soup(["script", "style", "nav", "footer", "header", "noscript"]):
+        tag.decompose()
+
+    title = ""
+    if soup.find("h1"):
+        title = soup.find("h1").get_text(" ", strip=True)
+    elif soup.title:
+        title = soup.title.get_text(" ", strip=True)
+
+    main = soup.find("article") or soup.find("main") or soup.body or soup
+    paragraphs = [el.get_text(" ", strip=True) for el in main.find_all(["p", "li", "h2", "h3"])]
+    content = "\n".join(text for text in paragraphs if len(text) > 35)
+    content = content[:20000]
+
+    if not title or not content:
+        raise ValueError("Konten artikel tidak berhasil diekstrak; struktur halaman mungkin berubah.")
+
+    save_education_article(url, title, content)
+    return title, len(content)
+
+def main():
+    init_db()
+    for url in SEED_URLS:
+        try:
+            title, chars = scrape_article(url)
+            print(f"[OK] {title} — {chars} karakter")
+        except Exception as exc:
+            print(f"[GAGAL] {url}: {exc}")
+
+if __name__ == "__main__":
+    main()

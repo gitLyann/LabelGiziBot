@@ -1,0 +1,4 @@
+Catatan lisensi:
+- Kode starter project ini disediakan untuk pembelajaran.
+- Data Open Food Facts tunduk pada lisensi ODbL dan kewajiban atribusi/share-alike sesuai ketentuan resminya.
+- Konten Ayo Sehat Kemenkes tetap milik pemegang hak terkait. Simpan URL sumber, gunakan kutipan/ekstrak seperlunya untuk tujuan pendidikan, dan patuhi ketentuan situs.

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LabelGizi Bot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark">LG</div>
+    <div><strong>LabelGizi Bot</strong><small>Asisten informasi gizi sehari-hari</small></div>
+    <span class="status"><i></i> Siap membantu</span>
+  </header>
+  <main class="layout">
+    <section class="intro">
+      <p class="eyebrow">SMART FOOD INFORMATION</p>
+      <h1>Pahami makananmu,<br><span>pilih dengan lebih sadar.</span></h1>
+      <p class="intro-copy">Cari informasi produk melalui barcode dan pelajari dasar gizi dari sumber edukasi.</p>
+      <div class="notice"><strong>Catatan:</strong> LabelGizi Bot adalah alat edukasi, bukan pengganti saran dokter atau ahli gizi.</div>
+    </section>
+    <section class="chat-card">
+      <div class="chat-heading">
+        <div class="bot-avatar">LG</div>
+        <div><strong>Asisten LabelGizi</strong><small>Jawaban berdasarkan sumber data</small></div>
+        <button id="clearBtn" class="text-button" type="button">Bersihkan</button>
+      </div>
+      <div id="messages" class="messages" aria-live="polite">
+        <div class="message bot">Halo! Kirim barcode produk (8–14 digit) untuk melihat informasi nutrisi, atau tanyakan tentang gizi seimbang.</div>
+      </div>
+      <div class="suggestions">
+        <button class="suggestion" data-message="Bagaimana cara membaca label gizi?">Cara membaca label gizi</button>
+        <button class="suggestion" data-message="Jelaskan gizi seimbang dan Isi Piringku">Apa itu Isi Piringku?</button>
+        <button class="suggestion" data-message="Bagaimana cara memeriksa kandungan produk?">Cek kandungan produk</button>
+      </div>
+      <form id="chatForm" class="composer">
+        <input id="messageInput" type="text" autocomplete="off" placeholder="Tulis pertanyaan atau masukkan barcode..." required>
+        <button type="submit" aria-label="Kirim pesan">Kirim</button>
+      </form>
+      <p class="source-note">Data produk: Open Food Facts · Materi edukasi: Ayo Sehat Kemenkes</p>
+    </section>
+  </main>
+  <footer>LabelGizi Bot · Proyek edukasi berbasis REST API, web scraping, dan database</footer>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
